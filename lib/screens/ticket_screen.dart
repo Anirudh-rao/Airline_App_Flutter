@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class TicketScreen extends StatefulWidget {
@@ -197,6 +198,106 @@ class _TicketScreenState extends State<TicketScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TicketShapeBorder extends ShapeBorder {
+  final double? width;
+  final double? radius;
+
+  _TicketShapeBorder({
+    required this.width,
+    required this.radius,
+  });
+
+  @override
+  EdgeInsetsGeometry get dimensions {
+    return EdgeInsets.all(width!);
+  }
+
+  @override
+  ShapeBorder scale(double t) {
+    return _TicketShapeBorder(
+      width: width! * t,
+      radius: radius! * t,
+    );
+  }
+
+  @override
+  ShapeBorder? lerpFrom(ShapeBorder? a, double t) {
+    if (a is _TicketShapeBorder)
+      return _TicketShapeBorder(
+        width: lerpDouble(a.width, width, t),
+        radius: lerpDouble(a.radius, radius, t),
+      );
+    return super.lerpFrom(a, t);
+  }
+
+  @override
+  ShapeBorder? lerpTo(ShapeBorder? b, double t) {
+    if (b is _TicketShapeBorder)
+      return _TicketShapeBorder(
+        width: lerpDouble(width, b.width, t),
+        radius: lerpDouble(radius, b.radius, t),
+      );
+    return super.lerpTo(b, t);
+  }
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
+    return getOuterPath(
+      rect.deflate(width!),
+      textDirection: textDirection,
+    );
+  }
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
+    final r = radius!;
+    final w = rect.size.width; // 全体の横幅
+    final h = rect.size.height; // 全体の縦幅
+    final hl = h / 3; // ロゴ部分の縦幅
+    return Path()
+      ..addPath(
+        Path()
+          ..moveTo(r, 0)
+          ..lineTo(w - r, 0) // →
+          ..arcToPoint(Offset(w, r), radius: Radius.circular(r))
+          ..lineTo(w, hl - 35) // ↓
+          ..arcToPoint(
+            Offset(w, hl),
+            radius: Radius.circular(20),
+            clockwise: false,
+          )
+          ..lineTo(w, h - r) // ↓
+          ..arcToPoint(Offset(w - r, h), radius: Radius.circular(r))
+          ..lineTo(r, h) // ←
+          ..arcToPoint(Offset(0, h - r), radius: Radius.circular(r))
+          ..lineTo(0, hl) // ↑
+          ..arcToPoint(
+            Offset(0, hl - 35),
+            radius: Radius.circular(20),
+            clockwise: false,
+          )
+          ..lineTo(0, r) // ↑
+          ..arcToPoint(Offset(r, 0), radius: Radius.circular(r)),
+        Offset(rect.left, rect.top),
+      );
+  }
+
+  @override
+  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width!
+      ..color = Colors.white;
+    canvas.drawPath(
+      getOuterPath(
+        rect.deflate(width! / 2.0),
+        textDirection: textDirection,
+      ),
+      paint,
     );
   }
 }
